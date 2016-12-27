@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+require_relative 'game_of_life'
+
+ROW_START_AT_INDEX = 0
+ROW_STOP_AT_INDEX  = 15
+COLUMN_START_AT_INDEX = 0
+COLUMN_STOP_AT_INDEX  = 16
+
+def print_board(board)
+  board_border_width = ((COLUMN_STOP_AT_INDEX - COLUMN_START_AT_INDEX) * 2) + 4
+  puts '-' * board_border_width
+  rows = (ROW_START_AT_INDEX..ROW_STOP_AT_INDEX)
+  columns = (COLUMN_START_AT_INDEX..COLUMN_STOP_AT_INDEX)
+  rows.each do |row|
+    print '|'
+    columns.each { |column| print(board[row, column] ? '[]' : '  ') }
+    print "|\n"
+  end
+  puts '-' * board_border_width
+end
+
+# Supporting class to use for parsing initial state
+class CellInitialStateString < String
+  def each_index_of(cell_repr)
+    return to_enum(:each_index_of, cell_repr) unless block_given?
+    each_line.with_index do |line, row|
+      line.each_char.with_index do |char, col|
+        yield [row, col] if char == cell_repr
+      end
+    end
+  end
+end
+
+initial_state = CellInitialStateString.new <<END
+     #     #
+     #     #
+     ##   ##
+
+ ###  ## ##  ###
+   # # # # # #
+     ##   ##
+
+     ##   ##
+   # # # # # #
+ ###  ## ##  ###
+
+     ##   ##
+     #     #
+     #     #
+END
+
+board = GameOfLife::Board.new(*initial_state.each_index_of('#'))
+
+loop do
+  print_board board
+  board = board.next_generation
+  sleep 1
+end
